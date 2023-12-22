@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # setup notion
-from notion_client import Client
 from notion_client.helpers import collect_paginated_api
+from notion_client import Client
 notion = Client(auth=os.getenv("NOTION_TOKEN"))
 
 
@@ -31,18 +31,37 @@ for url in transaction_url:
             pass
 
 #retrieve databases
+
 for dbindex,ID in enumerate(database_id):
+    database_struct = notion.databases.retrieve(database_id=ID).get("properties")
+    for prop in database_struct:
+        if prop.get("type")
+        prop[prop.get("type")] = {}
     print("database:",dbindex+1,"/",len(database_id))
     page_id = dict()
     print("Retrieve pageid")
     fulldatabase = collect_paginated_api(notion.databases.query, database_id=ID,filter_properties=["title"])
     page_ids = dict()
-    for result in fulldatabase:
-        name = ""
-        for key,prop in result.get("properties").items():
-            if prop["type"] == "title":
-                name = key
-        print(result.get("properties").get(name).get("title")[0].get("plain_text"), result.get("id"))
-        page_ids[result.get("properties").get(name).get("title")[0].get("plain_text")] = result.get("id")
-    for k,v in rates.items():
-        print(page_ids[k],k)
+    notion.pages.create(parent={"database_id":ID},properties={
+        'Rate': {
+            'id': 'b%7DAM', 
+            'type': 'number', 
+            'number': rate
+            }, 
+        'Name': {
+            'id': 'title', 
+            'type': 'title', 
+            'title': [{
+                'type': 'text', 
+                'text': {
+                    'content': name,
+                    'link': None
+                    }, 
+                'annotations': {
+                    'bold': False, 'italic': False, 'strikethrough': False, 'underline': False, 'code': False, 'color': 'default'
+                    },
+                'plain_text': name,
+                'href': None}
+                      ]
+            }
+            })
