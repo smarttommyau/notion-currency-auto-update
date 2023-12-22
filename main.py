@@ -35,6 +35,7 @@ def getRate(From,To):
 cache = dict[tuple[str,str],object]()
 for dbindex,ID in enumerate(database_id):
     print("database:",dbindex+1,"/",len(database_id))
+    print("Get properties and Update formulas")
     database_struct = notion.databases.retrieve(database_id=ID).get("properties")
     propT = dict()
     propV = dict()
@@ -72,7 +73,7 @@ for dbindex,ID in enumerate(database_id):
         notion.databases.update(database_id=ID,properties=db_prop)
 
     page_id = dict()
-    print("Retrieve pageid and update")
+    print("Retrieve pageids and Update fields")
     fulldatabase = collect_paginated_api(notion.databases.query, database_id=ID)
     for index,result in enumerate(fulldatabase):
         print("page:", index+1,"/",len(fulldatabase))
@@ -98,6 +99,4 @@ for dbindex,ID in enumerate(database_id):
             print(cur[0],">",cur[1],":",rate)
         if len(properties) > 0:
             notion.pages.update(page_id=result.get("id"),properties=properties)
-        
-
 
