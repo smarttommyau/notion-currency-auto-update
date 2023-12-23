@@ -1,8 +1,10 @@
 import os
 import time
-from dotenv import load_dotenv
-
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("python-dotenv unable to import, .env won't be loaded")
 
 # setup notion
 from notion_client.helpers import collect_paginated_api
