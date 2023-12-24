@@ -16,7 +16,10 @@ Auto update currency exchange rate for notion database
 > Run the below command to install <br>
 `pip install python-dotenv`
 ## By Docker
-> Under development
+### Build locally
+`docker build .`
+### Pull image
+`docker pull smarttommyau/notion-currency-auto-update`
 # Usage
 1. Setup and Run Environment
 2. Connect Notion
@@ -27,7 +30,9 @@ Auto update currency exchange rate for notion database
 2. Set the **NOTION_TOKEN** environment variable by setting it in `.env` or manually
 3. Now, run `python main.py` to run the program 
 ## By Docker
-> Under development
+Simply Run `docker run smarttommyau/notion-currency-auto-update`
+> `--env-file .env` to load .env file
+> `-d` to run in background
 ## Setup Notion
 - First, connect the integration to the database by add connection
 - Then, follow the below instructions
