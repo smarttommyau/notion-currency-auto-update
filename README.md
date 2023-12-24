@@ -28,8 +28,10 @@ Auto update currency exchange rate for notion database
 3. Now, run `python main.py` to run the program 
 ## By Docker
 > Under development
-## Connect Notion
-First, connect the integration to the database by add connection
+## Setup Notion
+- First, connect the integration to the database by add connection
+- Then, follow the below instructions
+> You may also refer to this [TEMPLATE](https://dramatic-porpoise-b92.notion.site/c21c60a4d7b142a99a44c95c1b8d46f5?v=d952a5f9e6e045a8af23e33c7f0545d2&pvs=4) 
 ### Ways To Use(Formula) 
 > This way all rows in this column will be the same
 1. Create a new column in type of formula
