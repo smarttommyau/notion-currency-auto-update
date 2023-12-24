@@ -21,7 +21,8 @@ class notion_database:
             if error.code == APIErrorCode.ObjectNotFound:
                 return False
             else:
-                raise Exception(error)
+                print(erroe)
+                return False
         return True
     def PropertyUpdate(self) -> bool:
         propV = dict()
@@ -65,7 +66,8 @@ class notion_database:
                 if error.code == APIErrorCode.ObjectNotFound:
                     return False
                 else:
-                    raise Exception(error)
+                    print(error)
+                    return False
         self.propTf = propTf
         # create the list of required props
         if propT == self.propT:
@@ -101,7 +103,8 @@ class notion_database:
                 if error.code == APIErrorCode.ObjectNotFound:
                     return False
                 else:
-                    raise Exception(error)
+                    print(error)
+                    return False
         return True
     def UpdatePage(self,pageid) -> bool:
         if len(self.filter_props) == 0:
