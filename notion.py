@@ -127,12 +127,18 @@ class notion_database:
                                                       "direction":"ascending"
                                                       }]
                                                  )
-            for index,v in enumerate(fulldatabase):
-                print("Page:",index+1,"/",len(fulldatabase))
-                print(v.get("id"))
-                self.UpdatePageWithResult(v.get("properties"),v.get("id"))
         except APIResponseError as error:
             if error.code == APIErrorCode.ObjectNotFound:
                 return False
+        need_retry = True
+        for index,v in enumerate(fulldatabase):
+            print("Page:",index+1,"/",len(fulldatabase))
+            print(v.get("id"))
+            need_retry &= self.UpdatePageWithResult(v.get("properties"),v.get("id"))
+        if not need_retry:
+            self.PullPropertyStruct()
+            self.PropertyUpdate()
+            self.UpdateAllPages()
+
         return True
 

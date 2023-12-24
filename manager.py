@@ -98,6 +98,9 @@ class manager:
                 continue
             db = self.databases.get(dbid)
             if db is not None:
-                db.UpdatePageWithResult(prop,pageid)
+                if not db.UpdatePageWithResult(prop,pageid):
+                    db.PullPropertyStruct()
+                    db.PropertyUpdate()
+                    db.UpdateAllPages()
         return True
             

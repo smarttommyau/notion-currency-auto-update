@@ -32,6 +32,6 @@ while True:
     counts = counts + 1 if not manager.Update() else 0# monitor change
     if not counts % 10: #show counter on each 10 runs
         print("No updates for {} runs".format(counts))
-    sleep(2)
+    sleep(1)
 
 
