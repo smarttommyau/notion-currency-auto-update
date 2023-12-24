@@ -1,3 +1,5 @@
+if __name__ == "__main__":
+    raise Exception("This not the main")
 from notion_client.helpers import collect_paginated_api
 from notion import notion_database
 from datetime import datetime
