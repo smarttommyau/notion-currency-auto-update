@@ -10,8 +10,11 @@ from exchange_rate import exchange_rate_getter
 exchange_rate_getter = exchange_rate_getter()
 
 # setup notion
-from notion_client import Client
+from notion_client import  Client
+if not os.getenv("NOTION_TOKEN"):
+    raise SystemExit("NOTION_TOKEN not given")
 notion = Client(auth=os.getenv("NOTION_TOKEN"))
+    
 
 from manager import manager
 from datetime import datetime,timezone,timedelta

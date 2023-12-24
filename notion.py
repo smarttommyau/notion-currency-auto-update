@@ -106,7 +106,12 @@ class notion_database:
     def UpdatePage(self,pageid) -> bool:
         if len(self.filter_props) == 0:
             return True
-        return self.UpdatePageWithResult(self.notion.pages.retrieve(pageid=pageid,filter_properties=self.filter_props),pageid)
+        try:
+            result = self.notion.pages.retrieve(pageid=pageid,filter_properties=self.filter_props)
+        except APIResponseError as error:
+            print(error)
+            return False
+        return self.UpdatePageWithResult(result,pageid)
     def UpdateAllPages(self) -> bool:
         if len(self.filter_props) == 0:
             return True
