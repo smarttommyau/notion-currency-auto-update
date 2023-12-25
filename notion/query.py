@@ -52,6 +52,36 @@ def RetrieveDatabaseList(notion, descending=True, cursor=None, page_size=100):
         return None
     return database_results
 
+def RetrieveList(notion, descending=True, cursor=None, page_size=100):
+    try:
+        results = collect_paginated_api(notion.search
+                                                 ,query=""
+                                                 ,next_cursor=cursor
+                                                 ,sort={
+                                                     "timestamp":"last_edited_time",
+                                                     "direction": ("descending" if descending else "ascending")
+                                                     }
+                                                  ,page_size=page_size
+                                                 )
+    except APIResponseError as error:
+        print(error)
+        return None
+    return results
+
+def RetrieveLatestCursor(notion):
+    try:
+        result = notion.search(query=""
+                               ,sort={
+                                   "timestamp":"last_edited_time",
+                                   "direction":"descending"
+                                   }
+                                   ,page_size=1
+                                   ).get("results")
+    except APIResponseError as error:
+        print(error)
+        return None
+    return result[0].get("id")
+
 def UpdatePageProperties(notion, page_id, properties):
     try:
         notion.pages.update(page_id=page_id,properties=properties)
