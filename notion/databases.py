@@ -1,7 +1,10 @@
 if __name__ == "__main__":
     raise Exception("This not the main")
-from notion_client import APIErrorCode, APIResponseError
-from notion_client.helpers import collect_paginated_api
+from .query import   RetrieveDatabaseStructure,\
+                    UpdateDatabaseStructure,  \
+                    UpdatePageProperties,     \
+                    RetrievePage,              \
+                    RetrieveDatabaseRows
 
 class notion_database:
     def __init__(self,notion,ID,exchange_rate_getter) -> None:
@@ -15,16 +18,14 @@ class notion_database:
         self.success = self.PullPropertyStruct() & self.PropertyUpdate()
 
     def PullPropertyStruct(self) -> bool:
-        try:
-            self.struct = self.notion.databases.retrieve(database_id=self.ID).get("properties")
-        except APIResponseError as error:
-            if error.code == APIErrorCode.ObjectNotFound:
-                return False
-            else:
-                print(erroe)
-                return False
+        temp = RetrieveDatabaseStructure(self.notion,self.ID)
+        if temp is None:
+            return False
+        self.struct = temp
         return True
+    
     def PropertyUpdate(self) -> bool:
+        # Process properties
         propV = dict()
         propT = dict()
         db_prop = dict()
@@ -39,15 +40,20 @@ class notion_database:
             elif prop.startswith("ExRTV"):
                 if str(v.get("type")) == "number":
                     print("'",prop[5:],"'")
+                    # Delete name field if exist
                     if v.get("name"):
                         del v["name"]
                     propV[prop[5:]] = v
                 elif str(v.get("type")) == "formula":
-                    cur = prop.split()
+                    cur = prop.split() # split to get the second part of prop name
                     if len(cur)<2:
                         continue
-                    cur = cur[1].split(">")
+                    cur = cur[1].split(">") # split to get currency names
+                    if len(cur)!= 2:
+                        continue
+                    # Obtain rate
                     rate = self.exchange_rate_getter.getRate(cur[0],cur[1])
+                    # Update properties
                     propTf.append(prop)
                     db_prop[prop] = v
                     db_prop[prop]["formula"] = {
@@ -58,78 +64,62 @@ class notion_database:
                     print(cur[0],">",cur[1],":",rate)
         propT = {k:propT[k] for k in propV} # clean all irrelevant fields
         # Update formulas
-        propTf.sort()
-        if propTf != self.propTf and len(db_prop) > 0:
-            try:
-                self.notion.databases.update(database_id=self.ID,properties=db_prop)
-            except APIResponseError as error:
-                if error.code == APIErrorCode.ObjectNotFound:
-                    return False
-                else:
-                    print(error)
-                    return False
-        self.propTf = propTf
+        propTf.sort() # sort to match last propTf
+        if propTf != self.propTf and len(db_prop) > 0: # check if update is needed
+            if not UpdateDatabaseStructure(self.notion,self.ID,db_prop):
+                return False
+        self.propTf = propTf # Update propTf
+
         # create the list of required props
-        if propT == self.propT:
+        if propT == self.propT: # check if update is needed
             return True
-        self.cursor = None
+        self.cursor = None # reset cursor
+        # Update propT and propV and filter_props
         self.propT = propT
         self.propV = propV
         self.filter_props = list()
         for k,v in self.propT.items(): 
             self.filter_props.append(v.get("id"))
             self.filter_props.append(self.propV[k].get("id"))
+        
         return True
+
     def UpdatePageWithResult(self,result,pageid) -> bool:
         properties = dict()
         for k in self.propT:
-            if result.get("ExRTT"+k).get("select") is None:
+            # check if type is select, if not skip
+            if result.get("ExRTT"+k).get("select") is None: 
                 continue
-                
+        
             cur = result.get("ExRTT"+k).get("select").get("name")
             if cur is None:
                 continue
-            cur = cur.split(">")
+            cur = cur.split(">") # split to get currency names
             if len(cur)!= 2:
                 continue
+            # Obtain rate
             rate = self.exchange_rate_getter.getRate(cur[0],cur[1])
+            # Update properties
             properties["ExRTV"+k] = self.propV.get(k)
             properties["ExRTV"+k]["number"] = rate
             print(cur[0],">",cur[1],":",rate)
         if len(properties) > 0:
-            try:
-                self.notion.pages.update(page_id=pageid,properties=properties)
-            except APIResponseError as error:
-                if error.code == APIErrorCode.ObjectNotFound:
-                    return False
-                else:
-                    print(error)
-                    return False
+            return UpdatePageProperties(self.notion,pageid,properties)
         return True
+    
     def UpdatePage(self,pageid) -> bool:
         if len(self.filter_props) == 0:
             return True
-        try:
-            result = self.notion.pages.retrieve(pageid=pageid,filter_properties=self.filter_props)
-        except APIResponseError as error:
-            print(error)
+        result = RetrievePage(self.notion,pageid,self.filter_props)
+        if result is None:
             return False
         return self.UpdatePageWithResult(result,pageid)
     def UpdateAllPages(self) -> bool:
         if len(self.filter_props) == 0:
             return True
-        try:
-            fulldatabase = collect_paginated_api(self.notion.databases.query,
-                                                 database_id=self.ID,
-                                                 filter_properties=self.filter_props,
-                                                 sort=[
-                                                     {"timestamp":"last_edited_time",
-                                                      "direction":"ascending"
-                                                      }]
-                                                 )
-        except APIResponseError as error:
-            if error.code == APIErrorCode.ObjectNotFound:
-                return False
+        fulldatabase = RetrieveDatabaseRows(self.notion,self.ID,self.filter_props)
+        if fulldatabase is None:
+            return False
         need_retry = True
         for index,v in enumerate(fulldatabase):
             print("Page:",index+1,"/",len(fulldatabase))
@@ -141,4 +131,3 @@ class notion_database:
             self.UpdateAllPages()
 
         return True
-

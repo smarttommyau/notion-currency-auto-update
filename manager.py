@@ -1,7 +1,7 @@
 if __name__ == "__main__":
     raise Exception("This not the main")
-from notion_client.helpers import collect_paginated_api
-from notion import APIResponseError, notion_database
+from notion import notion_database
+from notion.query import RetrieveDatabaseList
 from datetime import datetime
 class manager:
     def __init__(self,notion,exchange_rate_getter) -> None:
@@ -14,20 +14,8 @@ class manager:
         # Reset databases
         self.databases = dict[str,notion_database]()
         # Collect all database
-        try:
-            database_results = collect_paginated_api(self.notion.search
-                                                 ,query=""
-                                                 ,filter={
-                                                     "value": "database",
-                                                     "property": "object"
-                                                     }
-                                                 ,sort={
-                                                     "timestamp":"last_edited_time",
-                                                     "direction":"descending"
-                                                     }
-                                                 )
-        except APIResponseError as error:
-            print(error)
+        database_results = RetrieveDatabaseList(self.notion)
+        if database_results is None:
             return
         if len(database_results) > 1: # Get cursor if length >= 2, as cursor get errors on using latest cursor
             self.cursor  = database_results[1].get("id")
@@ -42,22 +30,8 @@ class manager:
                 database.UpdateAllPages()
     def Update(self) -> bool:
         # Collect updated databases
-        try:
-            database_results = collect_paginated_api(self.notion.search
-                                                 ,query=""
-                                                 ,next_cursor=self.cursor
-                                                 ,sort={
-                                                     "timestamp":"last_edited_time",
-                                                     "direction":"ascending"
-                                                     }
-                                                ,filter={
-                                                    "value": "database",
-                                                    "property": "object"
-                                                    }
-                                                ,page_size=5
-                                                 )
-        except APIResponseError as error:
-            print(error)
+        database_results = RetrieveDatabaseList(self.notion, descending=False ,cursor=self.cursor,page_size=5)
+        if database_results is None:
             return False
         # skip process if no updted
         if not len(database_results) or datetime.fromisoformat(str(database_results[-1].get("last_edited_time"))) == self.last_edit:
