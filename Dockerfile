@@ -1,6 +1,7 @@
 FROM alpine:3.18
 
 WORKDIR /app
+COPY notion/ ./notion/ 
 COPY *.py .
 COPY requirements_full.txt .
 RUN echo "Install Python" && \
