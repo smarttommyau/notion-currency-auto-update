@@ -1,5 +1,11 @@
-# notion-currency-auto-update
-Auto update currency exchange rate for notion database
+<h1 align="center"> notion-currency-auto-update</h1>
+
+![european-union-1493894_1280](https://github.com/smarttommyau/notion-currency-auto-update/assets/75346987/37859e82-7876-490c-ad10-ea8f108dc4b6)
+<br>  
+[![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/smarttommyau/notion-currency-auto-update)
+![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)<br>  
+**Auto update currency exchange rate for Notion**
+
 
 # Installation
 ## By Python 
