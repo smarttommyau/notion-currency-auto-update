@@ -64,6 +64,8 @@ def RetrieveList(notion, descending=True, cursor=None, page_size=100):
                                                   ,page_size=page_size
                                                  )
     except APIResponseError as error:
+        if error.code == APIErrorCode.ValidationError: ## cursor not found ignore
+            return None
         print(error)
         return None
     return results

@@ -15,7 +15,7 @@ class notion_database:
         self.propTf = list()
         self.filter_props = list()
         self.exchange_rate_getter = exchange_rate_getter
-        self.success = self.PullPropertyStruct() & self.PropertyUpdate()
+        self.success = self.PullPropertyStruct() & (self.PropertyUpdate() in (None,True))
 
     def PullPropertyStruct(self) -> bool:
         temp = RetrieveDatabaseStructure(self.notion,self.ID)
@@ -53,6 +53,9 @@ class notion_database:
                         continue
                     # Obtain rate
                     rate = self.exchange_rate_getter.getRate(cur[0],cur[1])
+                    # skip if rate is equal
+                    if rate == v.get("formula").get("number") or str(rate) == v.get("formula").get("expression"):
+                        continue
                     # Update properties
                     propTf.append(prop)
                     db_prop[prop] = v
@@ -65,9 +68,12 @@ class notion_database:
         propT = {k:propT[k] for k in propV} # clean all irrelevant fields
         # Update formulas
         propTf.sort() # sort to match last propTf
-        if propTf != self.propTf and len(db_prop) > 0: # check if update is needed
+        updated = False
+        if len(db_prop) > 0: # check if update is needed
+            updated = True
             if not UpdateDatabaseStructure(self.notion,self.ID,db_prop):
                 return False
+
         self.propTf = propTf # Update propTf
 
         # create the list of required props
@@ -81,16 +87,20 @@ class notion_database:
         for k,v in self.propT.items(): 
             self.filter_props.append(v.get("id"))
             self.filter_props.append(self.propV[k].get("id"))
-        
+        if not updated:
+            return None
         return True
 
     def UpdatePageWithResult(self,result,pageid) -> bool:
         properties = dict()
         for k in self.propT:
-            # check if type is select, if not skip
-            if result.get("ExRTT"+k).get("select") is None: 
+            # check if type is select, or RTV is number, if not skip
+            if  result.get("ExRTT"+k) is None or result.get("ExRTV"+k) is None or \
+                result.get("ExRTT"+k).get("type") != "select" or \
+                result.get("ExRTT"+k).get("select") is None or \
+                result.get("ExRTV"+k).get("type") != "number": 
                 continue
-        
+                
             cur = result.get("ExRTT"+k).get("select").get("name")
             if cur is None:
                 continue
@@ -99,13 +109,16 @@ class notion_database:
                 continue
             # Obtain rate
             rate = self.exchange_rate_getter.getRate(cur[0],cur[1])
+            # skip if rate is equal
+            if rate == result.get("ExRTV"+k).get("number"):
+                continue
             # Update properties
             properties["ExRTV"+k] = self.propV.get(k)
             properties["ExRTV"+k]["number"] = rate
             print(cur[0],">",cur[1],":",rate)
         if len(properties) > 0:
             return UpdatePageProperties(self.notion,pageid,properties)
-        return True
+        return None
     
     def UpdatePage(self,pageid) -> bool:
         if len(self.filter_props) == 0:
@@ -124,7 +137,7 @@ class notion_database:
         for index,v in enumerate(fulldatabase):
             print("Page:",index+1,"/",len(fulldatabase))
             print(v.get("id"))
-            need_retry &= self.UpdatePageWithResult(v.get("properties"),v.get("id"))
+            need_retry &= self.UpdatePageWithResult(v.get("properties"),v.get("id")) in (None,True)
         if not need_retry:
             self.PullPropertyStruct()
             self.PropertyUpdate()

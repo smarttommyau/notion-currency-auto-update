@@ -2,7 +2,6 @@ if __name__ == "__main__":
     raise Exception("This not the main")
 from notion import notion_database
 from notion.query import RetrieveList, RetrieveDatabaseList, RetrieveLatestCursor
-from datetime import datetime
 class manager:
     def __init__(self,notion,exchange_rate_getter) -> None:
         self.notion = notion
@@ -28,42 +27,47 @@ class manager:
         results = RetrieveList(self.notion, descending=False ,cursor=self.cursor,page_size=5)
         if results is None:
             return False
-        if len(results) <= 1:
-            return False
         # Update cursor
         self.cursor  = results[-1].get("id")
         page_list = list() # for pages, process after db updated
         updated_db = list() # skip updated db to prevent recursive running update on same item
         for index,result in enumerate(results):
-            print("Items:",index+1,"/",len(results))
             pageid = result.get("id")
             if result.get("object") == "database" :
+                print("Items:",index+1,"/",len(results)) # print only if it is processed
                 if self.databases.get(pageid) is None:
                     database = notion_database(self.notion,result.get("id"),self.exchange_rate_getter)
                     if database.success:
                         self.databases[pageid] = database
                         database.UpdateAllPages()
                         updated_db.append(pageid)
+                        self.cursor = pageid
                 else:
                     if self.databases[pageid].PullPropertyStruct() & self.databases[pageid].PropertyUpdate():
                         self.databases[pageid].UpdateAllPages()
                         updated_db.append(pageid)
+                        self.cursor = pageid
 
             else:
                 dbid = result.get("parent").get("database_id")
                 if dbid is not None:
                     page_list.append((dbid,result.get("properties"),pageid))
-
+        updated = False
         for index,(dbid,prop,pageid) in enumerate(page_list):
-            print("Pages:",index+1,"/",len(page_list))
-            if dbid in pageid:
+            if dbid in updated_db:
                 continue
             db = self.databases.get(dbid)
             if db is not None:
-                if not db.UpdatePageWithResult(prop,pageid):
+                result = db.UpdatePageWithResult(prop,pageid)
+                if result is None:
+                    continue
+                if not result:
                     db.PullPropertyStruct()
                     db.PropertyUpdate()
                     db.UpdateAllPages()
-        self.cursor = RetrieveLatestCursor(self.notion)
-        return True
+                else:
+                    self.cursor = pageid
+                updated = True
+            print("Pages:",index+1,"/",len(page_list)) # print only if it is processed
+        return updated
             
