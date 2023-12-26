@@ -1,11 +1,21 @@
 from notion_client.helpers import collect_paginated_api
 from notion_client import APIErrorCode, APIResponseError
+from time import sleep
+def GeneralErrorProcess(error):
+    match error.code:
+        case APIErrorCode.RateLimited:
+            print("Rate Limited")
+            sleep(60)
+        case _:
+            print(error)
+            return False
+    return False
 
 def RetrieveDatabaseStructure(notion, database_id):
     try:
         result = notion.databases.retrieve(database_id=database_id).get("properties")
     except APIResponseError as error:
-        print(error)
+        GeneralErrorProcess(error)
         return None
     return result
 
@@ -13,7 +23,7 @@ def UpdateDatabaseStructure(notion, database_id, properties):
     try:
         notion.databases.update(database_id=database_id,properties=properties)
     except APIResponseError as error:
-        print(error)
+        GeneralErrorProcess(error)
         return False
     return True
 
@@ -28,7 +38,7 @@ def RetrieveDatabaseRows(notion, database_id, filter_properties=None):
                                                       }]
                                                  )
     except APIResponseError as error:
-        print(error)
+        GeneralErrorProcess(error)
         return None
     return result
 
@@ -48,7 +58,7 @@ def RetrieveDatabaseList(notion, descending=True, cursor=None, page_size=100):
                                                   ,page_size=page_size
                                                  )
     except APIResponseError as error:
-        print(error)
+        GeneralErrorProcess(error)
         return None
     return database_results
 
@@ -66,7 +76,7 @@ def RetrieveList(notion, descending=True, cursor=None, page_size=100):
     except APIResponseError as error:
         if error.code == APIErrorCode.ValidationError: ## cursor not found ignore
             return None
-        print(error)
+        GeneralErrorProcess(error)
         return None
     return results
 
@@ -80,7 +90,7 @@ def RetrieveLatestCursor(notion):
                                    ,page_size=1
                                    ).get("results")
     except APIResponseError as error:
-        print(error)
+        GeneralErrorProcess(error)
         return None
     return result[0].get("id")
 
@@ -91,7 +101,6 @@ def UpdatePageProperties(notion, page_id, properties):
         if error.code == APIErrorCode.ObjectNotFound:
             return False
         else:
-            print(error)
             return False
     return True
 
@@ -99,7 +108,7 @@ def RetrievePage(notion, page_id, filter_properties=None):
     try:
         result = notion.pages.retrieve(page_id=page_id,filter_properties=filter_properties)
     except APIResponseError as error:
-        print(error)
+        GeneralErrorProcess(error)
         return None
     return result
 
