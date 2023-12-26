@@ -11,4 +11,4 @@ RUN echo "Install Python" && \
     python3 -m pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements_full.txt
 
-CMD python3 main.py
+CMD ["python3", "-u", "main.py"]
