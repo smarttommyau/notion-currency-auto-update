@@ -65,6 +65,9 @@ Simply Run `docker run smarttommyau/notion-currency-auto-update`
 # Future improvement
 - [ ] use an currency api that refresh more frequently
 - [ ] Host the public integration version
+# Note
+> It is normal that the update is not instantaneously due to indexing time and limited acess rate of the notion api. 
+
 # Acknowledge
 - [ramnes/notion-sdk-py](https://github.com/ramnes/notion-sdk-py)
 - [fawazahmed0/currency-api](https://github.com/fawazahmed0/currency-api)
