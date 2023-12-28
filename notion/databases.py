@@ -15,12 +15,16 @@ class notion_database:
         self.propTf = list()
         self.filter_props = list()
         self.exchange_rate_getter = exchange_rate_getter
+        self.struct = None
         self.success = self.PullPropertyStruct() & (self.PropertyUpdate() in (None,True))
 
     def PullPropertyStruct(self) -> bool:
         temp = RetrieveDatabaseStructure(self.notion,self.ID)
         if temp is None:
             return False
+        if self.struct == temp:
+            return None
+
         self.struct = temp
         return True
     
@@ -40,10 +44,10 @@ class notion_database:
             elif prop.startswith("ExRTV"):
                 if str(v.get("type")) == "number":
                     print("'",prop[5:],"'")
+                    propV[prop[5:]] = v.copy()
                     # Delete name field if exist
                     if v.get("name"):
-                        del v["name"]
-                    propV[prop[5:]] = v
+                        del propV[prop[5:]]["name"]
                 elif str(v.get("type")) == "formula":
                     cur = prop.split() # split to get the second part of prop name
                     if len(cur)<2:

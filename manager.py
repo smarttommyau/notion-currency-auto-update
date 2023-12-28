@@ -34,8 +34,9 @@ class manager:
         for index,result in enumerate(results):
             pageid = result.get("id")
             if result.get("object") == "database" :
-                print("Items:",index+1,"/",len(results)) # print only if it is processed
                 if self.databases.get(pageid) is None:
+                    print("Items:",index+1,"/",len(results)) # print only if it is processed
+                    
                     database = notion_database(self.notion,result.get("id"),self.exchange_rate_getter)
                     if database.success:
                         self.databases[pageid] = database
@@ -43,7 +44,8 @@ class manager:
                         updated_db.append(pageid)
                         self.cursor = pageid
                 else:
-                    if self.databases[pageid].PullPropertyStruct() & self.databases[pageid].PropertyUpdate():
+                    if self.databases[pageid].PullPropertyStruct() and self.databases[pageid].PropertyUpdate():
+                        print("Items:",index+1,"/",len(results)) # print only if it is processed
                         self.databases[pageid].UpdateAllPages()
                         updated_db.append(pageid)
                         self.cursor = pageid
