@@ -66,7 +66,7 @@ def RetrieveList(notion, descending=True, cursor=None, page_size=100):
     try:
         results = collect_paginated_api(notion.search
                                                  ,query=""
-                                                 ,next_cursor=cursor
+                                                 ,start_cursor=cursor
                                                  ,sort={
                                                      "timestamp":"last_edited_time",
                                                      "direction": ("descending" if descending else "ascending")
