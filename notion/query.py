@@ -46,7 +46,7 @@ def RetrieveDatabaseList(notion, descending=True, cursor=None, page_size=100):
     try:
         database_results = collect_paginated_api(notion.search
                                                  ,query=""
-                                                 ,next_cursor=cursor
+                                                 ,start_cursor=cursor
                                                  ,filter={
                                                      "value": "database",
                                                      "property": "object"
