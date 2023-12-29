@@ -70,7 +70,7 @@ Simply Run `docker run smarttommyau/notion-currency-auto-update`
 - CurrencyB: target currency
 5. Then, the ExRTV field will be auto update
 # Future improvement
-- [ ] use an currency api that refresh more frequently
+- [ ] use a currency api that refresh more frequently
 - [ ] Host the public integration version
 # Note
 > It is normal that the update is not instantaneously due to indexing time and limited acess rate of the notion api. 
